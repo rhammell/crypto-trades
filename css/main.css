@@ -1,0 +1,34 @@
+circle {
+  fill: #c5d7ea;
+  stroke: black;
+  stroke-width: 0.5px;
+  opacity: .8;
+}
+
+.buy {
+  fill: green;
+}
+
+.sell {
+  fill: #ff5959;
+}
+
+#chart {
+  fill: black;
+}
+
+.hover {
+  opacity: 1.0;
+  stroke-width: 2px;
+}
+
+.grid-line {
+  stroke: black;
+  stroke-width: 1px;
+}
+
+
+.cell {
+  stroke: #f9f9f9;
+  stroke-width: 1px;
+}
