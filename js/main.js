@@ -178,7 +178,7 @@ webSocket.onmessage = function (event) {
         .on('mouseover', mouseover) 
         .on('mouseout', mouseout)
 
-    $('#time').html(data.time + '<br>' + now);
+    //$('#time').html(data.time + '<br>' + now);
   }
 }
 
