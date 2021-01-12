@@ -7,24 +7,14 @@ var product_ids = [
   "BCH-USD",
   "ZRX-USD",
   "ALGO-USD",
-  "EOS-USD",
-  "DASH-USD",
-  "OXT-USD",
-  "MKR-USD",
-  "ATOM-USD",
-  "XTZ-USD",
-  "ETC-USD",
-  "OMG-USD",
-  "LINK-USD",
-  "REP-USD",
-  "DAI-USD"
+  "EOS-USD"
   ];
 
 // Init trade data
 var trades = []
 
 // Init time offset
-var offset = 0;
+var offset = undefined;
 
 // SVG size params
 var margin = {top: 50, right: 1, bottom: 50, left: 65};
@@ -77,7 +67,9 @@ svg.append("g")
       .attr('y2', height)
 
 // Add grid lines
-svg.selectAll(".grid-line")
+svg.append("g")
+    .attr('id', 'grid-lines')
+  .selectAll(".grid-line")
   .data(product_ids)
   .enter().append("line")
       .attr("class","grid-line")
@@ -106,7 +98,7 @@ svg.append("g")
     .call(yAxis);
 
 // Set interval callback
-d3.interval(updateChart, 250);
+d3.interval(updateChart, 500);
 
 // CBPro websocket url
 var url = 'wss://ws-feed.pro.coinbase.com';
@@ -127,7 +119,7 @@ var subscription = {
 function getTimeExtent(){
   var now = new Date();
   var nowOffset = new Date(now.getTime() + offset);
-  var dateStart = new Date(nowOffset.getTime() - 60*1000);
+  var dateStart = new Date(nowOffset.getTime() - 300*1000);
   return [dateStart, nowOffset]
 }
 
@@ -149,9 +141,7 @@ function updateChart() {
 
   // Join trade data to cirle elements
   var circles = svg.selectAll('circle')
-                  .data(trades, function(d){
-                    return d;
-                  });
+                  .data(trades, d => d.trade_id);
 
   // Remove unbound data
   circles.exit().remove();
@@ -162,9 +152,10 @@ function updateChart() {
       .attr('class', d => d.side)
       .attr('r', d => r(d.last_size / d.volume_24h))
       .attr('cy', d => y(d.product_id) + y.bandwidth()/2)
-      .on('mouseover', mouseover) 
+      .on('mouseenter', mouseover) 
       .on('mouseout', mouseout)
     .merge(circles)
+      //.transition()
       .attr('cx', d => x(d.time))
 }
 
@@ -182,14 +173,15 @@ webSocket.onmessage = function (event) {
   // Process ticker messages
   if (data.type == 'ticker') {
     data.time = new Date(data.time);
+    //console.log(JSON.stringify(data))
     trades.push(data)
 
-    // Calc offset 
-    var now = new Date();
-    offset = data.time.getTime() - now.getTime();
+    // Define offset
+    if (offset == undefined) {
+      var now = new Date();
+      offset = data.time.getTime() - now.getTime();
+    }
 
-    // Display time
-    //$('#time').html(data.time + '<br>' + now);
   }
 }
 
@@ -203,7 +195,7 @@ function mouseout(d) {
 function mouseover(d) {        
   d3.select(this)
     .classed('hover', true); 
-  console.log('hover')
+  console.log(d.time)
 }
 
 

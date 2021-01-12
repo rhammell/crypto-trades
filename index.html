@@ -3,15 +3,27 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Crypto</title>
+  <title>Crypto Trades</title>
   <link rel="stylesheet" href="css/main.css">
 </head>
 
 <body>
 
-  <p id="time"></p>
-  <svg id="chart"></svg>
-  
+  <div id="main">
+
+    <div id="header">
+      <h1>Crypto Trades</h1>
+      <p>Visualize real-time trading data of ten different crypto currencies. Nodes representing individual trades are added to a moving timeline as they are executed. Green and red represend buy and sell orders, respectively.</p>
+    </div>
+
+    <div id="wrapper">
+      <p id="time"></p>
+      <svg id="chart"></svg>
+    </div> 
+
+    <p id="footer">Trading Data: <a href="https://docs.pro.coinbase.com/#websocket-feed" target="_blank">Coinbase Pro</a></p>
+
+  </div>
 
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>

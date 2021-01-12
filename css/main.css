@@ -1,8 +1,44 @@
+body {
+  background: #fcfcfa;
+  color: #333;
+  font-family: "PT Sans", sans-serif;
+}
+
+#main {
+  width: 960px;
+  margin: 2em auto 4em auto;
+}
+
+#wrapper {
+  margin-left: -65px;
+}
+
+a { 
+    color: blue;
+}
+
+a:not(:hover) {
+    text-decoration: none;
+}
+
+h1 {
+  font-size: 45px;
+  margin: .3em 0 .1em 0;
+}
+
+p {
+  font-size: 13px;
+}
+
+#footer {
+  margin-top: 0px;
+}
+
 circle {
   fill: #c5d7ea;
   stroke: black;
   stroke-width: 0.5px;
-  opacity: .8;
+  opacity: .5;
 }
 
 .buy {
