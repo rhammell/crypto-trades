@@ -1,24 +1,27 @@
 var product_ids = [
-    "BTC-USD",
-    "ETH-USD",
-    "XRP-USD",
-    "XLM-USD",
-    "LTC-USD",
-    "BCH-USD",
-    "ZRX-USD",
-    "ALGO-USD",
-    "EOS-USD",
-    "DASH-USD",
-    "OXT-USD",
-    "MKR-USD",
-    "ATOM-USD",
-    "XTZ-USD",
-    "ETC-USD",
-    "OMG-USD",
-    "LINK-USD",
-    "REP-USD",
-    "DAI-USD"
+ "BTC-USD",
+  "ETH-USD",
+  "XRP-USD",
+  "XLM-USD",
+  "LTC-USD",
+  "BCH-USD",
+  "ZRX-USD",
+  "ALGO-USD",
+  "EOS-USD",
+  "DASH-USD",
+  "OXT-USD",
+  "MKR-USD",
+  "ATOM-USD",
+  "XTZ-USD",
+  "ETC-USD",
+  "OMG-USD",
+  "LINK-USD",
+  "REP-USD",
+  "DAI-USD"
   ];
+
+// Init trade data
+var trades = []
 
 // Init time offset
 var offset = 0;
@@ -64,31 +67,33 @@ var xAxisBottom = d3.axisBottom().scale(x);
 var xAxisTop = d3.axisTop().scale(x);
 var yAxis = d3.axisLeft().scale(y);
 
+// Right border
 svg.append("g")
    .append("line")
-      .attr("class","grid-line")
+      .attr("class","border")
       .attr('x1', width)
       .attr('x2', width)
       .attr('y1', 0)
       .attr('y2', height)
 
-svg.selectAll(".cell")
+// Add grid lines
+svg.selectAll(".grid-line")
   .data(product_ids)
   .enter().append("line")
-      .attr("class","cell")
+      .attr("class","grid-line")
       .attr('x1', 0)
       .attr('x2', width)
       .attr('y1', d =>y(d) + y.bandwidth()/2)
       .attr('y2', d =>y(d) + y.bandwidth()/2)
 
-// Add x axis elments
+// Add bottom x axis elments
 svg.append("g")
     .attr("transform", "translate(0," + height + ")")
     .attr('id', 'xAxisBottom')
     .attr("class", "axis")
     .call(xAxisBottom);
 
-// Add x axis elments
+// Add top x axis elments
 svg.append("g")
     .attr('id', 'xAxisTop')
     .attr("class", "x axis")
@@ -101,7 +106,7 @@ svg.append("g")
     .call(yAxis);
 
 // Set interval callback
-d3.interval(updateChart, 100);
+d3.interval(updateChart, 250);
 
 // CBPro websocket url
 var url = 'wss://ws-feed.pro.coinbase.com';
@@ -122,7 +127,7 @@ var subscription = {
 function getTimeExtent(){
   var now = new Date();
   var nowOffset = new Date(now.getTime() + offset);
-  var dateStart = new Date(nowOffset.getTime() - 120*1000);
+  var dateStart = new Date(nowOffset.getTime() - 60*1000);
   return [dateStart, nowOffset]
 }
 
@@ -130,23 +135,37 @@ function getTimeExtent(){
 function updateChart() {
 
   // Update x axis with new times
-  x.domain(getTimeExtent())
+  timeExtent = getTimeExtent()
+  x.domain(timeExtent)
   d3.select('#xAxisBottom').call(xAxisBottom)
   d3.select('#xAxisTop').call(xAxisTop)
 
-  // Update all circle nodes
-  var circles = d3.selectAll('circle')
-    
-  // Update positions
-  circles.attr('cx', d => x(d.time))
+  // Filter out trades that are outside timeline
+  trades = trades.filter(function(trade){
+    return trade.time > timeExtent[0]
+  })
 
-  // Remove circles that are outside bounds
-  circles.filter(function(d){
-    var el = d3.select(this);
-    var cx = parseFloat(el.attr('cx'));
-    var r = parseFloat(el.attr('r'));
-    return cx + r < 0;
-  }).remove()
+  //console.log(trades.length)
+
+  // Join trade data to cirle elements
+  var circles = svg.selectAll('circle')
+                  .data(trades, function(d){
+                    return d;
+                  });
+
+  // Remove unbound data
+  circles.exit().remove();
+
+  // Create new cirle elements and update positions of existing ones
+  circles.enter()
+    .append('circle')
+      .attr('class', d => d.side)
+      .attr('r', d => r(d.last_size / d.volume_24h))
+      .attr('cy', d => y(d.product_id) + y.bandwidth()/2)
+      .on('mouseover', mouseover) 
+      .on('mouseout', mouseout)
+    .merge(circles)
+      .attr('cx', d => x(d.time))
 }
 
 // Send subscription data
@@ -157,27 +176,19 @@ webSocket.onopen = function (event) {
 // Handle incoming messages
 webSocket.onmessage = function (event) {
   
-  // Parse JSON
+  // Parse message JSON
   var data = JSON.parse(event.data)
 
   // Process ticker messages
   if (data.type == 'ticker') {
-
     data.time = new Date(data.time);
+    trades.push(data)
 
     // Calc offset 
     var now = new Date();
     offset = data.time.getTime() - now.getTime();
 
-    svg.append('circle')
-        .data([data])
-        .attr('class', d => d.side)
-        .attr('r', d => r(d.last_size / d.volume_24h))
-        .attr('cx', d => x(d.time))
-        .attr('cy', d => y(d.product_id) + y.bandwidth()/2)
-        .on('mouseover', mouseover) 
-        .on('mouseout', mouseout)
-
+    // Display time
     //$('#time').html(data.time + '<br>' + now);
   }
 }

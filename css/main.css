@@ -22,13 +22,13 @@ circle {
   stroke-width: 2px;
 }
 
-.grid-line {
+.border {
   stroke: black;
   stroke-width: 1px;
 }
 
 
-.cell {
+.grid-line {
   stroke: #f9f9f9;
   stroke-width: 1px;
 }
