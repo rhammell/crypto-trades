@@ -4,14 +4,25 @@ var tooltip = d3.select("body").append("div")
     .style("opacity", 0);
 
 var product_ids = [
- "BTC-USD",
-  "ETH-USD",
-  "XRP-USD",
-  "XLM-USD",
-  "LTC-USD",
-  "BCH-USD",
-  "ZRX-USD",
-  "ALGO-USD",
+    "BTC-USD",
+    "ETH-USD",
+    "XRP-USD",
+    "XLM-USD",
+    "LTC-USD",
+    "BCH-USD",
+    "ZRX-USD",
+    "ALGO-USD",
+    "EOS-USD",
+    "DASH-USD",
+    "OXT-USD",
+    "MKR-USD",
+    "ATOM-USD",
+    "XTZ-USD",
+    "ETC-USD",
+    "OMG-USD",
+    "LINK-USD",
+    "REP-USD",
+    "DAI-USD",
   "EOS-USD"
   ];
 
@@ -124,7 +135,7 @@ var subscription = {
 function getTimeExtent(){
   var now = new Date();
   var nowOffset = new Date(now.getTime() + offset);
-  var dateStart = new Date(nowOffset.getTime() - 60*1000);
+  var dateStart = new Date(nowOffset.getTime() - 120*1000);
   return [dateStart, nowOffset]
 }
 
@@ -146,7 +157,7 @@ function updateChart() {
   var circles = svg.selectAll('circle')
                   .data(trades, d => d.trade_id);
 
-  // Remove unbound data
+  // Remove unbound elements
   circles.exit().remove();
 
   // Create new cirle elements and update positions of existing ones
