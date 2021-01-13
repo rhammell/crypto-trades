@@ -1,3 +1,8 @@
+// Create a tooltip
+var tooltip = d3.select("body").append("div")    
+    .attr("id", "tooltip")                
+    .style("opacity", 0);
+
 var product_ids = [
  "BTC-USD",
   "ETH-USD",
@@ -17,7 +22,7 @@ var trades = []
 var offset = undefined;
 
 // SVG size params
-var margin = {top: 50, right: 1, bottom: 50, left: 65};
+var margin = {top: 40, right: 1, bottom: 50, left: 65};
 var width = 960;
 var height = product_ids.length * 40;
 
@@ -119,7 +124,7 @@ var subscription = {
 function getTimeExtent(){
   var now = new Date();
   var nowOffset = new Date(now.getTime() + offset);
-  var dateStart = new Date(nowOffset.getTime() - 300*1000);
+  var dateStart = new Date(nowOffset.getTime() - 120*1000);
   return [dateStart, nowOffset]
 }
 
@@ -134,10 +139,8 @@ function updateChart() {
 
   // Filter out trades that are outside timeline
   trades = trades.filter(function(trade){
-    return trade.time > timeExtent[0]
+    return trade.dateObj > timeExtent[0]
   })
-
-  //console.log(trades.length)
 
   // Join trade data to cirle elements
   var circles = svg.selectAll('circle')
@@ -152,11 +155,11 @@ function updateChart() {
       .attr('class', d => d.side)
       .attr('r', d => r(d.last_size / d.volume_24h))
       .attr('cy', d => y(d.product_id) + y.bandwidth()/2)
-      .on('mouseenter', mouseover) 
+      .on('mouseenter', mouseenter) 
       .on('mouseout', mouseout)
+      .on('mousemove', mousemove)
     .merge(circles)
-      //.transition()
-      .attr('cx', d => x(d.time))
+      .attr('cx', d => x(d.dateObj))
 }
 
 // Send subscription data
@@ -172,16 +175,16 @@ webSocket.onmessage = function (event) {
 
   // Process ticker messages
   if (data.type == 'ticker') {
-    data.time = new Date(data.time);
-    //console.log(JSON.stringify(data))
+
+    // Add message data to trades
+    data.dateObj = new Date(data.time);
     trades.push(data)
 
     // Define offset
     if (offset == undefined) {
       var now = new Date();
-      offset = data.time.getTime() - now.getTime();
+      offset = data.dateObj.getTime() - now.getTime();
     }
-
   }
 }
 
@@ -189,13 +192,44 @@ webSocket.onmessage = function (event) {
 function mouseout(d) {       
   d3.select(this)
     .classed('hover', false); 
+
+  tooltip
+    .html("") 
+    .style("opacity", 0); 
 }
 
 // Callback for mouse movment out of circle
-function mouseover(d) {        
+function mouseenter(d) {        
   d3.select(this)
     .classed('hover', true); 
-  console.log(d.time)
+
+  var matrix = getMatrix(this);
+  var radius = parseFloat(this.getAttribute('r'));
+  var ms = d.dateObj.getMilliseconds();
+  var timeSting = d.dateObj.toLocaleTimeString().replace(' ','.' + ms + ' ')
+
+  tooltip
+    .html("<p><strong>" + d.product_id + "</strong></p>" + 
+          "<p>Time: " + timeSting + "</p>" + 
+          "<p>Size: " + d.last_size + "</p>") 
+    .style("left", (window.pageXOffset + matrix.e - $("#tooltip").outerWidth() / 2) + "px")
+    .style("top", (window.pageYOffset + matrix.f  + radius + 3) + "px")
+    .style("opacity", 1)
 }
 
+// Callback for mouse movement in
+function mousemove(d) {  
+  var matrix = getMatrix(this);
+
+  tooltip
+    .style("left", (window.pageXOffset + matrix.e - $("#tooltip").outerWidth() / 2) + "px")
+
+ }
+
+ function getMatrix(circle) {
+    var matrix = circle.getScreenCTM()
+      .translate(+ circle.getAttribute("cx"), + circle.getAttribute("cy")); 
+
+    return matrix
+ }
 

@@ -26,12 +26,29 @@ h1 {
   margin: .3em 0 .1em 0;
 }
 
-p {
+body p {
   font-size: 13px;
 }
 
 #footer {
   margin-top: 0px;
+}
+
+#tooltip { 
+  position: absolute;              
+  padding: 1px 3px;    
+  background: white; 
+  border: 1px solid grey;    
+  border-radius: 1px;     
+  pointer-events: none;   
+  text-align: center;
+  white-space: nowrap;
+}
+
+#tooltip p { 
+  margin: 0px;
+  padding: 0px;
+  font-size: 10px;
 }
 
 circle {
