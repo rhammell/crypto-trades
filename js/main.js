@@ -103,7 +103,7 @@ svg.append("g")
     .call(yAxis);
 
 // Set interval callback
-d3.interval(updateChart, 500);
+d3.interval(updateChart, 100);
 
 // CBPro websocket url
 var url = 'wss://ws-feed.pro.coinbase.com';
@@ -124,7 +124,7 @@ var subscription = {
 function getTimeExtent(){
   var now = new Date();
   var nowOffset = new Date(now.getTime() + offset);
-  var dateStart = new Date(nowOffset.getTime() - 120*1000);
+  var dateStart = new Date(nowOffset.getTime() - 60*1000);
   return [dateStart, nowOffset]
 }
 
@@ -189,25 +189,31 @@ webSocket.onmessage = function (event) {
 }
 
 // Callback for mouse movment out of circle
-function mouseout(d) {       
+function mouseout(d) {  
+  
+  // Toggle hover class     
   d3.select(this)
     .classed('hover', false); 
 
+  // Hide tooltip
   tooltip
     .html("") 
     .style("opacity", 0); 
 }
 
 // Callback for mouse movment out of circle
-function mouseenter(d) {        
+function mouseenter(d) {  
+
+  // Toggle hover class      
   d3.select(this)
     .classed('hover', true); 
 
+  // Update tooltip content and position
   var matrix = getMatrix(this);
   var radius = parseFloat(this.getAttribute('r'));
   var ms = d.dateObj.getMilliseconds();
   var timeSting = d.dateObj.toLocaleTimeString().replace(' ','.' + ms + ' ')
-
+  
   tooltip
     .html("<p><strong>" + d.product_id + "</strong></p>" + 
           "<p>Time: " + timeSting + "</p>" + 
@@ -219,6 +225,8 @@ function mouseenter(d) {
 
 // Callback for mouse movement in
 function mousemove(d) {  
+  
+  // Update tooltip position
   var matrix = getMatrix(this);
 
   tooltip
@@ -226,10 +234,11 @@ function mousemove(d) {
 
  }
 
- function getMatrix(circle) {
-    var matrix = circle.getScreenCTM()
-      .translate(+ circle.getAttribute("cx"), + circle.getAttribute("cy")); 
+// Calculate matrix for mouse offset
+function getMatrix(circle) {
+  var matrix = circle.getScreenCTM()
+    .translate(+ circle.getAttribute("cx"), + circle.getAttribute("cy")); 
 
-    return matrix
- }
+  return matrix
+}
 
