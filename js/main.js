@@ -3,6 +3,7 @@ var tooltip = d3.select("body").append("div")
     .attr("id", "tooltip")                
     .style("opacity", 0);
 
+// Define crypto product Ids 
 var product_ids = [
  "BTC-USD",
   "ETH-USD",
@@ -13,7 +14,7 @@ var product_ids = [
   "ZRX-USD",
   "ALGO-USD",
   "EOS-USD"
-  ];
+];
 
 // Init trade data
 var trades = []
@@ -33,16 +34,6 @@ var svg = d3.select("#chart")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-// Create fill elements
-svg.append('defs')
-  .append('clipPath')
-    .attr('id', 'clipper')
-    .append('rect')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', width)
-      .attr('height', height)
-
 // Set scaling functions
 var x = d3.scaleTime()
           .range([0, width])
@@ -51,6 +42,7 @@ var x = d3.scaleTime()
 var y = d3.scaleBand()
           .range([0,height])
           .domain(product_ids)
+          .paddingOuter(.1)
 
 var r = d3.scaleSqrt()
           .domain([0.0,1.0])
@@ -58,18 +50,10 @@ var r = d3.scaleSqrt()
           .exponent(0.4)
 
 // Set axes
-var xAxisBottom = d3.axisBottom().scale(x);
-var xAxisTop = d3.axisTop().scale(x);
-var yAxis = d3.axisLeft().scale(y);
-
-// Right border
-svg.append("g")
-   .append("line")
-      .attr("class","border")
-      .attr('x1', width)
-      .attr('x2', width)
-      .attr('y1', 0)
-      .attr('y2', height)
+var xAxisBottom = d3.axisBottom().scale(x).tickSizeOuter(0);
+var xAxisTop = d3.axisTop().scale(x).tickSizeOuter(0);
+var yAxisLeft = d3.axisLeft().scale(y).tickSizeOuter(0);
+var yAxisRight = d3.axisRight().scale(y).tickValues([]);
 
 // Add grid lines
 svg.append("g")
@@ -83,24 +67,34 @@ svg.append("g")
       .attr('y1', d =>y(d) + y.bandwidth()/2)
       .attr('y2', d =>y(d) + y.bandwidth()/2)
 
-// Add bottom x axis elments
+// Container for node elements
+var container = svg.append("svg")
+  .attr("width", width)
+  .attr("height", height)
+
+// Add X axis bottom
 svg.append("g")
     .attr("transform", "translate(0," + height + ")")
     .attr('id', 'xAxisBottom')
     .attr("class", "axis")
     .call(xAxisBottom);
 
-// Add top x axis elments
+// Add X axis top
 svg.append("g")
     .attr('id', 'xAxisTop')
     .attr("class", "x axis")
     .call(xAxisTop);
 
-// Add y axis element
+// Add Y axis left
 svg.append("g")
-    .attr('id', 'yAxis')
     .attr("class", "axis")
-    .call(yAxis);
+    .call(yAxisLeft);
+
+// Add Y axis right
+svg.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(" + width + ", 0)")
+    .call(yAxisRight);
 
 // Set interval callback
 d3.interval(updateChart, 100);
@@ -120,7 +114,7 @@ var subscription = {
   ]
 }
 
-// Return time extent to update axis    
+// Return time extent to display
 function getTimeExtent(){
   var now = new Date();
   var nowOffset = new Date(now.getTime() + offset);
@@ -139,11 +133,11 @@ function updateChart() {
 
   // Filter out trades that are outside timeline
   trades = trades.filter(function(trade){
-    return trade.dateObj > timeExtent[0]
+    return trade.dateObj > new Date(timeExtent[0].getTime() - 5000)
   })
 
   // Join trade data to cirle elements
-  var circles = svg.selectAll('circle')
+  var circles = container.selectAll('circle')
                   .data(trades, d => d.trade_id);
 
   // Remove unbound elements
@@ -231,7 +225,6 @@ function mousemove(d) {
 
   tooltip
     .style("left", (window.pageXOffset + matrix.e - $("#tooltip").outerWidth() / 2) + "px")
-
  }
 
 // Calculate matrix for mouse offset
