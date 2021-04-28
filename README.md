@@ -5,8 +5,8 @@ Trades for various Crypto/USD pairs are displayed on a scrolling timeline, where
 
 New trades are added to the timeline as they are received, and the timeline shows the last 60 seconds of trade activity. Mouse over any node to see its timestamp and order size. 
 
-Trade information is provided in real time by the the Coinbase Pro [websocket feed](https://docs.pro.coinbase.com/#websocket-feed). 
-
 <p align="center">
   <img width="800" src="img/chart.gif">
 </p>
+
+Trade information is provided in real time by the the Coinbase Pro [websocket feed](https://docs.pro.coinbase.com/#websocket-feed). 
