@@ -20,7 +20,7 @@ var product_ids = [
 var trades = []
 
 // Init time offset
-var offset = undefined;
+var offset = 0;
 
 // SVG size params
 var margin = {top: 40, right: 1, bottom: 50, left: 65};
@@ -97,7 +97,7 @@ svg.append("g")
     .call(yAxisRight);
 
 // Set interval callback
-d3.interval(updateChart, 100);
+d3.interval(updateChart, 20);
 
 // CBPro websocket url
 var url = 'wss://ws-feed.pro.coinbase.com';
@@ -149,9 +149,9 @@ function updateChart() {
       .attr('class', d => d.side)
       .attr('r', d => r(d.last_size / d.volume_24h))
       .attr('cy', d => y(d.product_id) + y.bandwidth()/2)
-      .on('mouseenter', mouseenter) 
-      .on('mouseout', mouseout)
-      .on('mousemove', mousemove)
+      .on('mouseenter', mouseEnter) 
+      .on('mouseout', mouseOut)
+      .on('mousemove', mouseMove)
     .merge(circles)
       .attr('cx', d => x(d.dateObj))
 }
@@ -175,28 +175,23 @@ webSocket.onmessage = function (event) {
     trades.push(data)
 
     // Define offset
-    if (offset == undefined) {
+    if (offset == 0) {
       var now = new Date();
       offset = data.dateObj.getTime() - now.getTime();
     }
   }
 }
 
-// Callback for mouse movment out of circle
-function mouseout(d) {  
-  
-  // Toggle hover class     
-  d3.select(this)
-    .classed('hover', false); 
-
-  // Hide tooltip
-  tooltip
-    .html("") 
-    .style("opacity", 0); 
+// Calculate matrix for mouse offset
+function getMatrix(circle) {
+  var matrix = circle.getScreenCTM()
+    .translate(+ circle.getAttribute("cx"), 
+               + circle.getAttribute("cy"));
+  return matrix
 }
 
 // Callback for mouse movment out of circle
-function mouseenter(d) {  
+function mouseEnter(d) {  
 
   // Toggle hover class      
   d3.select(this)
@@ -213,25 +208,28 @@ function mouseenter(d) {
           "<p>Time: " + timeSting + "</p>" + 
           "<p>Size: " + d.last_size + "</p>") 
     .style("left", (window.pageXOffset + matrix.e - $("#tooltip").outerWidth() / 2) + "px")
-    .style("top", (window.pageYOffset + matrix.f  + radius + 3) + "px")
+    .style("top", (window.pageYOffset + matrix.f  - $("#tooltip").outerHeight() - radius - 3) + "px")
     .style("opacity", 1)
 }
 
+// Callback for mouse movment out of circle
+function mouseOut(d) {  
+  
+  // Toggle hover class     
+  d3.select(this)
+    .classed('hover', false); 
+
+  // Hide tooltip
+  tooltip
+    .html("") 
+    .style("opacity", 0); 
+}
+
 // Callback for mouse movement in
-function mousemove(d) {  
+function mouseMove(d) {  
   
   // Update tooltip position
   var matrix = getMatrix(this);
-
   tooltip
     .style("left", (window.pageXOffset + matrix.e - $("#tooltip").outerWidth() / 2) + "px")
- }
-
-// Calculate matrix for mouse offset
-function getMatrix(circle) {
-  var matrix = circle.getScreenCTM()
-    .translate(+ circle.getAttribute("cx"), + circle.getAttribute("cy")); 
-
-  return matrix
 }
-
